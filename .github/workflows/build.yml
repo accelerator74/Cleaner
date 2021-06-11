@@ -1,0 +1,162 @@
+name: build
+
+on:
+  push:
+    branches:
+      - master
+    paths-ignore:
+      - LICENSE
+      - README.md
+  pull_request:
+    paths-ignore:
+      - LICENSE
+      - README.md
+  schedule:
+    - cron: '30 03 01 */3 *' # Artifacts expire every 3 months
+
+jobs:
+  build:
+    name: build with sm${{ matrix.sm_version }} on ${{ matrix.os_short }}
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        os:
+          - ubuntu-latest
+          - windows-latest
+
+        sm_version:
+          - "1.10"
+
+        mm_version:
+          - "1.10"
+
+        include:
+          - mm_version: "1.10"
+            mm_branch: "1.10-dev"
+
+          - sm_version: "1.10"
+            sm_branch: "1.10-dev"
+
+          - os: ubuntu-latest
+            os_short: linux
+
+          - os: windows-latest
+            os_short: win
+
+    steps:
+      - name: Prepare env
+        shell: bash
+        run: |
+          echo "GITHUB_SHA_SHORT=${GITHUB_SHA::7}" >> $GITHUB_ENV
+
+      - name: Install (Linux)
+        if: runner.os == 'Linux'
+        run: |
+          sudo dpkg --add-architecture i386
+          sudo apt-get update
+          sudo apt-get install -y clang g++-multilib
+          echo "CC=clang" >> $GITHUB_ENV
+          echo "CXX=clang++" >> $GITHUB_ENV
+
+      - name: Add msbuild to PATH (Windows)
+        if: runner.os == 'Windows'
+        uses: microsoft/setup-msbuild@v1.0.2
+
+      - name: Install (Windows)
+        if: runner.os == 'Windows'
+        shell: cmd
+        run: |
+          :: See https://github.com/microsoft/vswhere/wiki/Find-VC
+          for /f "usebackq delims=*" %%i in (`vswhere -latest -property installationPath`) do (
+            call "%%i"\Common7\Tools\vsdevcmd.bat -arch=x86 -host_arch=x64
+          )
+
+          :: Loop over all environment variables and make them global.
+          for /f "delims== tokens=1,2" %%a in ('set') do (
+            echo>>"%GITHUB_ENV%" %%a=%%b
+          )
+
+      - name: Checking out SourceMod
+        uses: actions/checkout@v2
+        with:
+          repository: alliedmodders/sourcemod
+          ref: ${{ matrix.sm_branch }}
+          path: sourcemod-${{ matrix.sm_version }}
+          submodules: recursive
+
+      - name: Checking out MM:Source
+        uses: actions/checkout@v2
+        with:
+          repository: alliedmodders/metamod-source
+          ref: ${{ matrix.mm_branch }}
+          path: metamod-${{ matrix.mm_version }}
+
+      - name: Checking out AMBuild
+        uses: actions/checkout@v2
+        with:
+          repository: alliedmodders/ambuild
+          path: ambuild
+
+      - name: Setting up Python
+        uses: actions/setup-python@v2
+        with:
+          python-version: '3.x'
+
+      - name: Setting up ambuild
+        working-directory: ambuild
+        run: python setup.py install
+
+      - name: Checking out hl2sdk-l4d2
+        uses: actions/checkout@v2
+        with:
+          repository: alliedmodders/hl2sdk
+          ref: l4d2
+          path: hl2sdk-l4d2
+
+      - name: Checking out hl2sdk-l4d
+        uses: actions/checkout@v2
+        with:
+          repository: alliedmodders/hl2sdk
+          ref: l4d
+          path: hl2sdk-l4d
+
+      - name: Checking out hl2sdk-css
+        uses: actions/checkout@v2
+        with:
+          repository: alliedmodders/hl2sdk
+          ref: css
+          path: hl2sdk-css
+
+      - name: Checking out hl2sdk-tf2
+        uses: actions/checkout@v2
+        with:
+          repository: alliedmodders/hl2sdk
+          ref: tf2
+          path: hl2sdk-tf2
+
+      - name: Checking out hl2sdk-csgo
+        uses: actions/checkout@v2
+        with:
+          repository: alliedmodders/hl2sdk
+          ref: csgo
+          path: hl2sdk-csgo
+
+      - name: Checking out own repository
+        uses: actions/checkout@v2
+        with:
+          path: cleaner
+
+      - name: Compiling Cleaner files
+        working-directory: cleaner
+        run: |
+          mkdir build
+          cd build
+          python ../configure.py --enable-optimize --sm-path="${{ github.workspace }}/sourcemod-${{ matrix.sm_version }}" --mms-path="${{ github.workspace }}/metamod-${{ matrix.mm_version }}"
+          ambuild
+
+      - name: Uploading package
+        uses: actions/upload-artifact@v2
+        with:
+          name: cleaner-sm${{ matrix.sm_version }}-${{ matrix.os_short }}-${{ env.GITHUB_SHA_SHORT }}
+          path: cleaner/build/package
