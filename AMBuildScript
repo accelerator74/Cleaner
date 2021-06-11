@@ -216,6 +216,7 @@ class BuildInfo:
             '_snprintf=snprintf',
             '_vsnprintf=vsnprintf',
             'HAVE_STDINT_H',
+            'HAVE_STRING_H',
             'GNUC',
         ]
         cxx.cflags += [
