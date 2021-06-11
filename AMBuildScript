@@ -276,209 +276,209 @@ class BuildInfo:
         if self.builder.options.opt == '1':
             cxx.cflags += ['-O3']
 
-  def configure_msvc(self, cxx):
-    if self.builder.options.debug == '1':
-      cxx.cflags += ['/MTd']
-      cxx.linkflags += ['/NODEFAULTLIB:libcmt']
-    else:
-      cxx.cflags += ['/MT']
-    cxx.defines += [
-      '_CRT_SECURE_NO_DEPRECATE',
-      '_CRT_SECURE_NO_WARNINGS',
-      '_CRT_NONSTDC_NO_DEPRECATE',
-      '_ITERATOR_DEBUG_LEVEL=0',
-    ]
-    cxx.cflags += [
-      '/W3',
-    ]
-    cxx.cxxflags += [
-      '/EHsc',
-      '/GR-',
-      '/TP',
-    ]
-    cxx.linkflags += [
-      '/MACHINE:X86',
-      'kernel32.lib',
-      'user32.lib',
-      'gdi32.lib',
-      'winspool.lib',
-      'comdlg32.lib',
-      'advapi32.lib',
-      'shell32.lib',
-      'ole32.lib',
-      'oleaut32.lib',
-      'uuid.lib',
-      'odbc32.lib',
-      'odbccp32.lib',
-    ]
-
-    if self.builder.options.opt == '1':
-      cxx.cflags += ['/Ox', '/Zo']
-      cxx.linkflags += ['/OPT:ICF', '/OPT:REF']
-
-    if self.builder.options.debug == '1':
-      cxx.cflags += ['/Od', '/RTC1']
-
-    # This needs to be after our optimization flags which could otherwise disable it.
-    # Don't omit the frame pointer.
-    cxx.cflags += ['/Oy-']
-
-  def configure_linux(self, cxx):
-    cxx.defines += ['_LINUX', 'POSIX']
-    cxx.linkflags += ['-lm']
-    if cxx.vendor == 'gcc':
-      cxx.linkflags += ['-static-libgcc']
-    elif cxx.vendor == 'clang':
-      cxx.linkflags += ['-lgcc_eh']
-
-  def configure_mac(self, cxx):
-    cxx.defines += ['OSX', '_OSX', 'POSIX']
-    cxx.cflags += ['-mmacosx-version-min=10.5']
-    cxx.linkflags += [
-      '-mmacosx-version-min=10.5',
-      '-arch', 'i386',
-      '-lstdc++',
-      '-stdlib=libc++',
-    ]
-    cxx.cxxflags += ['-stdlib=libc++']
-
-  def configure_windows(self, cxx):
-    cxx.defines += ['WIN32', '_WINDOWS']
-
-  def ConfigureForExtension(self, context, compiler):
-    compiler.cxxincludes += [
-      os.path.join(context.currentSourcePath),
-      os.path.join(self.sm_root, 'public'),
-      os.path.join(self.sm_root, 'public', 'extensions'),
-      os.path.join(self.sm_root, 'sourcepawn', 'include'),
-      os.path.join(self.sm_root, 'public', 'amtl', 'amtl'),
-      os.path.join(self.sm_root, 'public', 'amtl'),
-    ]
-    return compiler
-
-  def ConfigureForHL2(self, binary, sdk: SDK):
-    compiler = binary.compiler
-
-    compiler.cxxincludes += [
-      os.path.join(self.mms_root, 'core'),
-      os.path.join(self.mms_root, 'core', 'sourcehook'),
-    ]
-
-    compiler.defines += SourceEngine.all_defines()
-
-    paths = [
-      ['public'],
-      ['public', 'engine'],
-      ['public', 'mathlib'],
-      ['public', 'vstdlib'],
-      ['public', 'tier0'],
-      ['public', 'tier1'],
-      ['public', 'game', 'server'],
-      ['public', 'toolframework'],
-      ['game', 'shared'],
-      ['common']
-    ]
-
-    compiler.defines += [f'SOURCE_ENGINE={sdk.engine.code}']
-
-    if compiler.like('msvc'):
-      compiler.defines += ['COMPILER_MSVC', 'COMPILER_MSVC32']
-    else:
-      compiler.defines += ['COMPILER_GCC']
-
-    if sdk.short_name in ['css', 'hl2dm', 'dods', 'sdk2013', 'bms', 'tf2', 'l4d', 'nucleardawn', 'l4d2', 'dota']:
-      if self.builder.target_platform in ['linux', 'mac']:
-        compiler.defines += ['NO_HOOK_MALLOC', 'NO_MALLOC_OVERRIDE']
-
-    if sdk.short_name == 'csgo' and self.builder.target_platform == 'linux':
-      compiler.linkflags += ['-lstdc++']
-
-    # For everything after Swarm, this needs to be defined for entity networking
-    # to work properly with sendprop value changes.
-    if sdk.short_name in ['blade', 'insurgency', 'doi', 'csgo']:
-      compiler.defines += ['NETWORK_VARS_ENABLED']
-
-    for path in paths:
-      compiler.cxxincludes += [os.path.join(sdk.path, *path)]
-
-    if self.builder.target_platform == 'linux':
-      if sdk.short_name == 'episode1':
-        lib_folder = os.path.join(sdk.path, 'linux_sdk')
-      elif sdk.short_name in ['sdk2013', 'bms']:
-        lib_folder = os.path.join(sdk.path, 'lib', 'public', 'linux32')
-      else:
-        lib_folder = os.path.join(sdk.path, 'lib', 'linux')
-    elif self.builder.target_platform == 'mac':
-      if sdk.short_name in ['sdk2013', 'bms']:
-        lib_folder = os.path.join(sdk.path, 'lib', 'public', 'osx32')
-      else:
-        lib_folder = os.path.join(sdk.path, 'lib', 'mac')
-
-    if self.builder.target_platform in ['linux', 'mac']:
-      if sdk.short_name in ['sdk2013', 'bms']:
-        compiler.postlink += [
-          compiler.Dep(os.path.join(lib_folder, 'tier1.a')),
-          compiler.Dep(os.path.join(lib_folder, 'mathlib.a'))
+    def configure_msvc(self, cxx):
+        if self.builder.options.debug == '1':
+            cxx.cflags += ['/MTd']
+            cxx.linkflags += ['/NODEFAULTLIB:libcmt']
+        else:
+            cxx.cflags += ['/MT']
+        cxx.defines += [
+            '_CRT_SECURE_NO_DEPRECATE',
+            '_CRT_SECURE_NO_WARNINGS',
+            '_CRT_NONSTDC_NO_DEPRECATE',
+            '_ITERATOR_DEBUG_LEVEL=0',
         ]
-      else:
-        compiler.postlink += [
-          compiler.Dep(os.path.join(lib_folder, 'tier1_i486.a')),
-          compiler.Dep(os.path.join(lib_folder, 'mathlib_i486.a'))
+        cxx.cflags += [
+            '/W3',
+        ]
+        cxx.cxxflags += [
+            '/EHsc',
+            '/GR-',
+            '/TP',
+        ]
+        cxx.linkflags += [
+            '/MACHINE:X86',
+            'kernel32.lib',
+            'user32.lib',
+            'gdi32.lib',
+            'winspool.lib',
+            'comdlg32.lib',
+            'advapi32.lib',
+            'shell32.lib',
+            'ole32.lib',
+            'oleaut32.lib',
+            'uuid.lib',
+            'odbc32.lib',
+            'odbccp32.lib',
         ]
 
-      if sdk.short_name in ['blade', 'insurgency', 'csgo', 'dota']:
-        compiler.postlink += [compiler.Dep(os.path.join(lib_folder, 'interfaces_i486.a'))]
+        if self.builder.options.opt == '1':
+            cxx.cflags += ['/Ox', '/Zo']
+            cxx.linkflags += ['/OPT:ICF', '/OPT:REF']
 
-    dynamic_libs = []
-    if self.builder.target_platform == 'linux':
-      if sdk.short_name in ['css', 'hl2dm', 'dods', 'tf2', 'sdk2013', 'bms', 'nucleardawn', 'l4d2', 'insurgency']:
-        dynamic_libs = ['libtier0_srv.so', 'libvstdlib_srv.so']
-      elif sdk.short_name in ['l4d', 'blade', 'insurgency', 'csgo', 'dota']:
-        dynamic_libs = ['libtier0.so', 'libvstdlib.so']
-      else:
-        dynamic_libs = ['tier0_i486.so', 'vstdlib_i486.so']
+        if self.builder.options.debug == '1':
+            cxx.cflags += ['/Od', '/RTC1']
 
-    elif self.builder.target_platform == 'mac':
-      compiler.linkflags.append('-liconv')
-      dynamic_libs = ['libtier0.dylib', 'libvstdlib.dylib']
+        # This needs to be after our optimization flags which could otherwise disable it.
+        # Don't omit the frame pointer.
+        cxx.cflags += ['/Oy-']
 
-    elif self.builder.target_platform == 'windows':
-      libs = ['tier0', 'tier1', 'vstdlib', 'mathlib']
-      if sdk.short_name in ['swarm', 'blade', 'insurgency', 'csgo', 'dota']:
-        libs.append('interfaces')
+    def configure_linux(self, cxx):
+        cxx.defines += ['_LINUX', 'POSIX']
+        cxx.linkflags += ['-lm']
+        if cxx.vendor == 'gcc':
+            cxx.linkflags += ['-static-libgcc']
+        elif cxx.vendor == 'clang':
+            cxx.linkflags += ['-lgcc_eh']
 
-      for lib in libs:
-        lib_path = os.path.join(sdk.path, 'lib', 'public', lib) + '.lib'
-        compiler.linkflags.append(compiler.Dep(lib_path))
+    def configure_mac(self, cxx):
+        cxx.defines += ['OSX', '_OSX', 'POSIX']
+        cxx.cflags += ['-mmacosx-version-min=10.5']
+        cxx.linkflags += [
+            '-mmacosx-version-min=10.5',
+            '-arch', 'i386',
+            '-lstdc++',
+            '-stdlib=libc++',
+        ]
+        cxx.cxxflags += ['-stdlib=libc++']
 
-    for library in dynamic_libs:
-      source_path = os.path.join(lib_folder, library)
-      output_path = os.path.join(binary.localFolder, library)
+    def configure_windows(self, cxx):
+        cxx.defines += ['WIN32', '_WINDOWS']
 
-      def make_linker(source_path, output_path):
-        def link(context, binary):
-          cmd_node, (output,) = context.AddSymlink(source_path, output_path)
-          return output
-        return link
+    def ConfigureForExtension(self, context, compiler):
+        compiler.cxxincludes += [
+            os.path.join(context.currentSourcePath),
+            os.path.join(self.sm_root, 'public'),
+            os.path.join(self.sm_root, 'public', 'extensions'),
+            os.path.join(self.sm_root, 'sourcepawn', 'include'),
+            os.path.join(self.sm_root, 'public', 'amtl', 'amtl'),
+            os.path.join(self.sm_root, 'public', 'amtl'),
+        ]
+        return compiler
 
-      linker = make_linker(source_path, output_path)
-      compiler.linkflags[0:0] = [compiler.Dep(library, linker)]
+    def ConfigureForHL2(self, binary, sdk: SDK):
+        compiler = binary.compiler
 
-    return binary
+        compiler.cxxincludes += [
+            os.path.join(self.mms_root, 'core'),
+            os.path.join(self.mms_root, 'core', 'sourcehook'),
+        ]
 
-  def HL2Library(self, context, name, sdk):
-    binary = context.compiler.Library(name)
-    self.ConfigureForExtension(context, binary.compiler)
-    return self.ConfigureForHL2(binary, sdk)
+        compiler.defines += SourceEngine.all_defines()
 
-  def HL2Project(self, context, name):
-    project = context.compiler.LibraryProject(name)
-    self.ConfigureForExtension(context, project.compiler)
-    return project
+        paths = [
+            ['public'],
+            ['public', 'engine'],
+            ['public', 'mathlib'],
+            ['public', 'vstdlib'],
+            ['public', 'tier0'],
+            ['public', 'tier1'],
+            ['public', 'game', 'server'],
+            ['public', 'toolframework'],
+            ['game', 'shared'],
+            ['common']
+        ]
 
-  def HL2Config(self, project, name, sdk):
-    binary = project.Configure(name, '{0} - {1}'.format(self.tag, sdk.name))
-    return self.ConfigureForHL2(binary, sdk)
+        compiler.defines += [f'SOURCE_ENGINE={sdk.engine.code}']
+
+        if compiler.like('msvc'):
+            compiler.defines += ['COMPILER_MSVC', 'COMPILER_MSVC32']
+        else:
+            compiler.defines += ['COMPILER_GCC']
+
+        if sdk.short_name in ['css', 'hl2dm', 'dods', 'sdk2013', 'bms', 'tf2', 'l4d', 'nucleardawn', 'l4d2', 'dota']:
+            if self.builder.target_platform in ['linux', 'mac']:
+                compiler.defines += ['NO_HOOK_MALLOC', 'NO_MALLOC_OVERRIDE']
+
+        if sdk.short_name == 'csgo' and self.builder.target_platform == 'linux':
+            compiler.linkflags += ['-lstdc++']
+
+        # For everything after Swarm, this needs to be defined for entity networking
+        # to work properly with sendprop value changes.
+        if sdk.short_name in ['blade', 'insurgency', 'doi', 'csgo']:
+            compiler.defines += ['NETWORK_VARS_ENABLED']
+
+        for path in paths:
+            compiler.cxxincludes += [os.path.join(sdk.path, *path)]
+
+        if self.builder.target_platform == 'linux':
+            if sdk.short_name == 'episode1':
+                 lib_folder = os.path.join(sdk.path, 'linux_sdk')
+            elif sdk.short_name in ['sdk2013', 'bms']:
+                 lib_folder = os.path.join(sdk.path, 'lib', 'public', 'linux32')
+            else:
+                 lib_folder = os.path.join(sdk.path, 'lib', 'linux')
+        elif self.builder.target_platform == 'mac':
+            if sdk.short_name in ['sdk2013', 'bms']:
+                 lib_folder = os.path.join(sdk.path, 'lib', 'public', 'osx32')
+            else:
+                 lib_folder = os.path.join(sdk.path, 'lib', 'mac')
+
+       if self.builder.target_platform in ['linux', 'mac']:
+            if sdk.short_name in ['sdk2013', 'bms']:
+                 compiler.postlink += [
+                     compiler.Dep(os.path.join(lib_folder, 'tier1.a')),
+                     compiler.Dep(os.path.join(lib_folder, 'mathlib.a'))
+                 ]
+            else:
+                 compiler.postlink += [
+                     compiler.Dep(os.path.join(lib_folder, 'tier1_i486.a')),
+                     compiler.Dep(os.path.join(lib_folder, 'mathlib_i486.a'))
+                 ]
+
+            if sdk.short_name in ['blade', 'insurgency', 'csgo', 'dota']:
+                compiler.postlink += [compiler.Dep(os.path.join(lib_folder, 'interfaces_i486.a'))]
+
+        dynamic_libs = []
+        if self.builder.target_platform == 'linux':
+            if sdk.short_name in ['css', 'hl2dm', 'dods', 'tf2', 'sdk2013', 'bms', 'nucleardawn', 'l4d2', 'insurgency']:
+                dynamic_libs = ['libtier0_srv.so', 'libvstdlib_srv.so']
+            elif sdk.short_name in ['l4d', 'blade', 'insurgency', 'csgo', 'dota']:
+                dynamic_libs = ['libtier0.so', 'libvstdlib.so']
+            else:
+                dynamic_libs = ['tier0_i486.so', 'vstdlib_i486.so']
+
+        elif self.builder.target_platform == 'mac':
+            compiler.linkflags.append('-liconv')
+            dynamic_libs = ['libtier0.dylib', 'libvstdlib.dylib']
+
+        elif self.builder.target_platform == 'windows':
+            libs = ['tier0', 'tier1', 'vstdlib', 'mathlib']
+            if sdk.short_name in ['swarm', 'blade', 'insurgency', 'csgo', 'dota']:
+                libs.append('interfaces')
+
+            for lib in libs:
+                lib_path = os.path.join(sdk.path, 'lib', 'public', lib) + '.lib'
+                compiler.linkflags.append(compiler.Dep(lib_path))
+
+        for library in dynamic_libs:
+            source_path = os.path.join(lib_folder, library)
+            output_path = os.path.join(binary.localFolder, library)
+
+            def make_linker(source_path, output_path):
+                def link(context, binary):
+                    cmd_node, (output,) = context.AddSymlink(source_path, output_path)
+                    return output
+                return link
+
+            linker = make_linker(source_path, output_path)
+            compiler.linkflags.append(compiler.Dep(library, linker))
+
+        return binary
+
+    def HL2Library(self, context, name, sdk):
+        binary = context.compiler.Library(name)
+        self.ConfigureForExtension(context, binary.compiler)
+        return self.ConfigureForHL2(binary, sdk)
+
+    def HL2Project(self, context, name):
+        project = context.compiler.LibraryProject(name)
+        self.ConfigureForExtension(context, project.compiler)
+        return project
+
+    def HL2Config(self, project, name, sdk):
+        binary = project.Configure(name, '{0} - {1}'.format(self.tag, sdk.short_name))
+        return self.ConfigureForHL2(binary, sdk)
 
 
 build_info = BuildInfo(builder)
