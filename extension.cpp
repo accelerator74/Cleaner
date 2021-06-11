@@ -47,16 +47,16 @@ bool Cleaner::SDK_OnLoad(char *error, size_t maxlength, bool late)
 	do
 	{
 		c = fgetc(file);
-		++lines;
+		if (c == '\n') ++lines;
 	} while (c != EOF);
 
 	rewind(file);
 
 	int len;
-	g_szStrings = (char**)malloc(lines*sizeof(char**));
+	g_szStrings = new char*[lines];
 	while(!feof(file))
 	{
-		g_szStrings[g_iStrings] = (char*)malloc(256*sizeof(char*));
+		g_szStrings[g_iStrings] = new char[256];
 		if (fgets(g_szStrings[g_iStrings], 255, file) != NULL)
 		{
 			len = strlen(g_szStrings[g_iStrings]);

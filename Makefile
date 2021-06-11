@@ -26,7 +26,7 @@ C_OPT_FLAGS = -DNDEBUG -O3 -funroll-loops -pipe -fno-strict-aliasing
 C_DEBUG_FLAGS = -D_DEBUG -DDEBUG -g -ggdb3
 C_GCC4_FLAGS = -fvisibility=hidden
 CPP_GCC4_FLAGS = -fvisibility-inlines-hidden
-CPP = gcc
+CPP = clang
 
 override ENGSET = false
 ifneq (,$(filter original orangebox orangeboxvalve css left4dead left4dead2 csgo,$(ENGINE)))
@@ -128,7 +128,7 @@ LINK += -m32 -ldl -lm
 CFLAGS += -DPOSIX -Dstricmp=strcasecmp -D_stricmp=strcasecmp -D_strnicmp=strncasecmp -Dstrnicmp=strncasecmp \
 	-D_snprintf=snprintf -D_vsnprintf=vsnprintf -D_alloca=alloca -Dstrcmpi=strcasecmp -DCOMPILER_GCC \
 	-Wno-switch -Wall -Werror -mfpmath=sse -msse -DSOURCEMOD_BUILD -DHAVE_STDINT_H -m32
-CPPFLAGS += -Wno-non-virtual-dtor -fno-exceptions -fno-rtti -fno-threadsafe-statics -std=c++11 
+CPPFLAGS += -Wno-non-virtual-dtor -Wno-unused -fno-exceptions -fno-rtti -fno-threadsafe-statics -std=c++14
 
 ################################################
 ### DO NOT EDIT BELOW HERE FOR MOST PROJECTS ###
