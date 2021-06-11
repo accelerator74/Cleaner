@@ -414,7 +414,7 @@ class BuildInfo:
             else:
                  lib_folder = os.path.join(sdk.path, 'lib', 'mac')
 
-       if self.builder.target_platform in ['linux', 'mac']:
+        if self.builder.target_platform in ['linux', 'mac']:
             if sdk.short_name in ['sdk2013', 'bms']:
                  compiler.postlink += [
                      compiler.Dep(os.path.join(lib_folder, 'tier1.a')),
