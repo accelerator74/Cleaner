@@ -95,7 +95,7 @@ jobs:
       - name: Checking out AMBuild
         uses: actions/checkout@v2
         with:
-          repository: alliedmodders/ambuild
+          repository: Accelerator74/ambuild
           path: ambuild
 
       - name: Setting up Python
