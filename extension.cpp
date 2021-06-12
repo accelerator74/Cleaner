@@ -110,7 +110,13 @@ bool Cleaner::SDK_OnLoad(char *error, size_t maxlength, bool late)
 void Cleaner::SDK_OnUnload()
 {
 	if(g_pDetour)
+	{
 		g_pDetour->Destroy();
+		g_pDetour = NULL;
+	}
+
+	for(int i = 0; i < g_iStrings; ++i)
+		delete [] g_szStrings[i];
 
 	delete [] g_szStrings;
 }
