@@ -277,6 +277,9 @@ class BuildInfo:
         if self.builder.options.opt == '1':
             cxx.cflags += ['-O3']
 
+    # Don't omit the frame pointer.
+    cxx.cflags += ['-fno-omit-frame-pointer']
+
     def configure_msvc(self, cxx):
         if self.builder.options.debug == '1':
             cxx.cflags += ['/MTd']
