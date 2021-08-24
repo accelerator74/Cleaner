@@ -17,7 +17,8 @@ int g_iStrings = 0;
 		for (int i = 0; i < g_iStrings; ++i)
 		{
 			// make sure we're stripping at least 2 or more chars just in case we accidentally inhale a \0
-			if (strlen(g_szStrings[i]) > 1 && strstr(pMessage, g_szStrings[i]) != 0)
+			// also there's no reason to strip a single char ever
+			if (strlen(g_szStrings[i]) >= 2 && strstr(pMessage, g_szStrings[i]) != 0)
 			{
 				return LR_CONTINUE;
 			}
@@ -30,7 +31,8 @@ int g_iStrings = 0;
 		for (int i = 0; i < g_iStrings; ++i)
 		{
 			// make sure we're stripping at least 2 or more chars just in case we accidentally inhale a \0
-			if (strlen(g_szStrings[i]) > 1 && strstr(text, g_szStrings[i]) != 0)
+			// also there's no reason to strip a single char ever
+			if (strlen(g_szStrings[i]) >= 2 && strstr(text, g_szStrings[i]) != 0)
 			{
 				return SPEW_CONTINUE;
 			}
@@ -42,14 +44,14 @@ int g_iStrings = 0;
 // https://stackoverflow.com/questions/10178700/c-strip-non-ascii-characters-from-string
 static bool badChar(char c)
 {
-    // everything below space excluding null term and del or above
-    return (c != 0 && (c < 32 || c > 126));
+	// everything below space excluding null term and del or above
+	return (c != 0 && (c < 32 || c > 126));
 }
 
 static void stripBadChars(std::string & str)
 {
-    // remove all chars matching our "badchar" func
-    str.erase(remove_if(str.begin(),str.end(), badChar), str.end());
+	// remove all chars matching our "badchar" func
+	str.erase(remove_if(str.begin(),str.end(), badChar), str.end());
 }
 
 bool Cleaner::SDK_OnLoad(char *error, size_t maxlength, bool late)
@@ -67,48 +69,50 @@ bool Cleaner::SDK_OnLoad(char *error, size_t maxlength, bool late)
 		return false;
 	}
 
-	// step thru the file char by char and log the number of newlines we have
-	// this is more or less the number of lines we have
-	int c, lines = 0;
-	do
+	// step thru the file char by char and log the number of lines we have
+	int lines = 0;
+	for (int c = fgetc(file); c != EOF; c = fgetc(file))
 	{
-		c = fgetc(file);
 		if (c == '\n')
 		{
 			++lines;
 		}
-	} while (c != EOF);
+	}
 
-	rootconsole->ConsolePrint("[CLEANER] %i lines", lines);
+	rootconsole->ConsolePrint("[CLEANER] %i lines in cleaner.cfg", lines);
+
 	rewind(file);
 
 	g_szStrings = new char*[lines];
 
 	while (!feof(file))
 	{
+		// we don't need to have 256 chars to work with here as most strings are far smaller than that
 		g_szStrings[g_iStrings] = new char[128];
-		// fgets stops at n - 1 aka 255
+		// fgets stops at n - 1 aka 127
 		if (fgets(g_szStrings[g_iStrings], 128, file) != NULL)
 		{
 			// make things a little easier on ourselves
 			std::string thisstring = g_szStrings[g_iStrings];
 
 			// significantly more robust way of stripping evil chars from our string so we don't crash
-			stripBadChars( thisstring );
+			// when we try to strip them. this includes newlines, control chars, non ascii unicde, etc.
+			stripBadChars(thisstring);
 
 			// copy our std::string back to char*
+			// Disgusting.
 			char* c_thisstring = &thisstring[0];
 
 			int len = strlen(c_thisstring);
 
-			// don't strip 0 len strings
-			if (len <= 0)
+			// don't strip tiny (including 0 len or less) strings
+			if (len <= 1)
 			{
-				//rootconsole->ConsolePrint("[CLEANER] Refusing to strip a string with 0 or less length - line %i", g_iStrings );
+				rootconsole->ConsolePrint("[CLEANER] Not stripping string on -> L%i with 1 or less length! Length: %i", g_iStrings+1, strlen(c_thisstring));
 			}
 			else
 			{
-				rootconsole->ConsolePrint("[CLEANER] Stripping string on line %i: \"%s\" - length = %i", g_iStrings+1, c_thisstring, strlen(c_thisstring));
+				rootconsole->ConsolePrint("[CLEANER] Stripping string on     -> L%i: \"%s\" - length: %i", g_iStrings+1, c_thisstring, strlen(c_thisstring));
 			}
 
 			strcpy(g_szStrings[g_iStrings], c_thisstring);
