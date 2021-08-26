@@ -171,12 +171,8 @@ void Cleaner::SDK_OnUnload()
 		g_pDetour = NULL;
 	}
 
-<<<<<<< HEAD
 	// we set lines to lines+1 earlier so this needs to be <=
 	for (int i = 0; i <= g_iStrings; ++i)
-=======
-	for (int i = 0; i < g_iStrings; ++i)
->>>>>>> a8148454bb66da9cd38df0878571524db7a658d6
 	{
 		delete [] g_szStrings[i];
 	}
