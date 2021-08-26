@@ -8,7 +8,7 @@ SMEXT_LINK(&g_Cleaner);
 
 CDetour *g_pDetour = 0;
 
-char **g_szStrings;
+char ** g_szStrings;
 int g_iStrings = 0;
 
 #if SOURCE_ENGINE >= SE_LEFT4DEAD2
