@@ -104,11 +104,11 @@ bool Cleaner::SDK_OnLoad(char *error, size_t maxlength, bool late)
 			// don't strip tiny (including 0 len or less) strings
 			if (thisstring.length() <= 1)
 			{
-				rootconsole->ConsolePrint("[CLEANER] Not stripping string on -> L%i with 1 or less length! Length: %i", g_iStrings+1, strlen(c_thisstring));
+				rootconsole->ConsolePrint("[CLEANER] Not stripping string on -> L%i with 1 or less length! Length: %i", g_iStrings+1, thisstring.length());
 			}
 			else
 			{
-				rootconsole->ConsolePrint("[CLEANER] Stripping string on     -> L%i: \"%s\" - length: %i", g_iStrings+1, c_thisstring, strlen(c_thisstring));
+				rootconsole->ConsolePrint("[CLEANER] Stripping string on     -> L%i: \"%s\" - length: %i", g_iStrings+1, thisstring.c_str(), thisstring.length());
 			}
 			g_szStrings[g_iStrings] = new char[thisstring.length()];
 			strcpy(g_szStrings[g_iStrings], thisstring.c_str());
