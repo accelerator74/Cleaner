@@ -90,6 +90,7 @@ bool Cleaner::SDK_OnLoad(char *error, size_t maxlength, bool late)
 		// we don't need to have 256 chars to work with here as most strings are far smaller than that
 		
 		// fgets stops at n - 1 aka 127
+		//Read in to temp var
 		char* temp = new char[128];
 		if (fgets(temp, 128, file) != NULL)
 		{
