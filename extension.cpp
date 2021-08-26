@@ -95,7 +95,7 @@ bool Cleaner::SDK_OnLoad(char *error, size_t maxlength, bool late)
 		if (fgets(temp, 128, file) != NULL)
 		{
 			// make things a little easier on ourselves
-			std::string thisstring = string(temp);
+			std::string thisstring = temp;
 
 			// significantly more robust way of stripping evil chars from our string so we don't crash
 			// when we try to strip them. this includes newlines, control chars, non ascii unicde, etc.
