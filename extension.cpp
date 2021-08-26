@@ -8,7 +8,7 @@ SMEXT_LINK(&g_Cleaner);
 
 CDetour *g_pDetour = 0;
 
-char ** g_szStrings;
+char **g_szStrings;
 int g_iStrings = 0;
 
 #if SOURCE_ENGINE >= SE_LEFT4DEAD2
@@ -83,7 +83,8 @@ bool Cleaner::SDK_OnLoad(char *error, size_t maxlength, bool late)
 
 	rewind(file);
 
-	g_szStrings = new char*[lines];
+	// need lines+1 because the feget runs ++lines even if it's at EOF
+	g_szStrings = new char*[lines+1];
 
 	while (!feof(file))
 	{
@@ -170,7 +171,12 @@ void Cleaner::SDK_OnUnload()
 		g_pDetour = NULL;
 	}
 
+<<<<<<< HEAD
+	// we set lines to lines+1 earlier so this needs to be <=
+	for (int i = 0; i <= g_iStrings; ++i)
+=======
 	for (int i = 0; i < g_iStrings; ++i)
+>>>>>>> a8148454bb66da9cd38df0878571524db7a658d6
 	{
 		delete [] g_szStrings[i];
 	}
