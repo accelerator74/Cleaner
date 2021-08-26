@@ -111,7 +111,7 @@ bool Cleaner::SDK_OnLoad(char *error, size_t maxlength, bool late)
 				rootconsole->ConsolePrint("[CLEANER] Stripping string on     -> L%i: \"%s\" - length: %i", g_iStrings+1, c_thisstring, strlen(c_thisstring));
 			}
 			g_szStrings[g_iStrings] = new char[thisstring.length()];
-			strcpy(g_szStrings[g_iStrings], c_thisstring.c_str());
+			strcpy(g_szStrings[g_iStrings], thisstring.c_str());
 
 			++g_iStrings;
 		}
