@@ -88,37 +88,34 @@ bool Cleaner::SDK_OnLoad(char *error, size_t maxlength, bool late)
 	while (!feof(file))
 	{
 		// we don't need to have 256 chars to work with here as most strings are far smaller than that
-		g_szStrings[g_iStrings] = new char[128];
+		
 		// fgets stops at n - 1 aka 127
-		if (fgets(g_szStrings[g_iStrings], 128, file) != NULL)
+		//Read in to temp var
+		char* temp = new char[128];
+		if (fgets(temp, 128, file) != NULL)
 		{
 			// make things a little easier on ourselves
-			std::string thisstring = g_szStrings[g_iStrings];
+			std::string thisstring = temp;
 
 			// significantly more robust way of stripping evil chars from our string so we don't crash
 			// when we try to strip them. this includes newlines, control chars, non ascii unicde, etc.
 			stripBadChars(thisstring);
 
-			// copy our std::string back to char*
-			// Disgusting.
-			char* c_thisstring = &thisstring[0];
-
-			int len = strlen(c_thisstring);
-
 			// don't strip tiny (including 0 len or less) strings
-			if (len <= 1)
+			if (thisstring.length() <= 1)
 			{
-				rootconsole->ConsolePrint("[CLEANER] Not stripping string on -> L%i with 1 or less length! Length: %i", g_iStrings+1, strlen(c_thisstring));
+				rootconsole->ConsolePrint("[CLEANER] Not stripping string on -> L%i with 1 or less length! Length: %i", g_iStrings+1, thisstring.length());
 			}
 			else
 			{
-				rootconsole->ConsolePrint("[CLEANER] Stripping string on     -> L%i: \"%s\" - length: %i", g_iStrings+1, c_thisstring, strlen(c_thisstring));
+				rootconsole->ConsolePrint("[CLEANER] Stripping string on     -> L%i: \"%s\" - length: %i", g_iStrings+1, thisstring.c_str(), thisstring.length());
 			}
-
-			strcpy(g_szStrings[g_iStrings], c_thisstring);
+			g_szStrings[g_iStrings] = new char[thisstring.length()];
+			strcpy(g_szStrings[g_iStrings], thisstring.c_str());
 
 			++g_iStrings;
 		}
+		delete [] temp;
 	}
 	fclose(file);
 
