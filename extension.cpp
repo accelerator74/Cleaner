@@ -87,7 +87,6 @@ bool Cleaner::SDK_OnLoad(char *error, size_t maxlength, bool late)
 	}
 	rootconsole->ConsolePrint("[CLEANER] %i strings added from cleaner.cfg", szStrings.size());
 	cleanerConfig.close();
-	delete [] szPath;
 
 	// init our detours
 	#if SOURCE_ENGINE >= SE_LEFT4DEAD2
