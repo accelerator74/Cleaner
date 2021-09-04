@@ -1,5 +1,10 @@
 #include "extension.h"
 #include "sigs.h"
+#include <vector>
+#include <fstream>
+#include <string>
+
+using namespace std;
 
 #define TIER0_NAME  SOURCE_BIN_PREFIX "tier0" SOURCE_BIN_SUFFIX SOURCE_BIN_EXT
 
@@ -8,17 +13,16 @@ SMEXT_LINK(&g_Cleaner);
 
 CDetour *g_pDetour = 0;
 
-char ** g_szStrings;
-int g_iStrings = 0;
+vector<string> szStrings;
 
 #if SOURCE_ENGINE >= SE_LEFT4DEAD2
 	DETOUR_DECL_MEMBER4(Detour_LogDirect, LoggingResponse_t, LoggingChannelID_t, channelID, LoggingSeverity_t, severity, Color, color, const tchar *, pMessage)
 	{
-		for (int i = 0; i < g_iStrings; ++i)
+		for (int i = 0; i < szStrings.size(); ++i)
 		{
 			// make sure we're stripping at least 2 or more chars just in case we accidentally inhale a \0
 			// also there's no reason to strip a single char ever
-			if (strlen(g_szStrings[i]) >= 2 && strstr(pMessage, g_szStrings[i]) != 0)
+			if (szStrings[i].length() >= 2 && szStrings[i].find(pMessage) != string::npos)
 			{
 				return LR_CONTINUE;
 			}
@@ -28,11 +32,11 @@ int g_iStrings = 0;
 #else
 	DETOUR_DECL_STATIC2(Detour_DefSpew, SpewRetval_t, SpewType_t, channel, char *, text)
 	{
-		for (int i = 0; i < g_iStrings; ++i)
+		for (int i = 0; i < szStrings.size(); ++i)
 		{
 			// make sure we're stripping at least 2 or more chars just in case we accidentally inhale a \0
 			// also there's no reason to strip a single char ever
-			if (strlen(g_szStrings[i]) >= 2 && strstr(text, g_szStrings[i]) != 0)
+			if (szStrings[i].length() >= 2 && szStrings[i].find(pMessage) != string::npos)
 			{
 				return SPEW_CONTINUE;
 			}
@@ -42,13 +46,13 @@ int g_iStrings = 0;
 #endif
 
 // https://stackoverflow.com/questions/10178700/c-strip-non-ascii-characters-from-string
-static bool badChar(char c)
+static bool badChar(char& c)
 {
 	// everything below space excluding null term and del or above
 	return (c != 0 && (c < 32 || c > 126));
 }
 
-static void stripBadChars(std::string & str)
+static void stripBadChars(string& str)
 {
 	// remove all chars matching our "badchar" func
 	str.erase(remove_if(str.begin(),str.end(), badChar), str.end());
@@ -61,64 +65,29 @@ bool Cleaner::SDK_OnLoad(char *error, size_t maxlength, bool late)
 	char szPath[256];
 	g_pSM->BuildPath(Path_SM, szPath, sizeof(szPath), "configs/cleaner.cfg");
 
-	FILE * file = fopen(szPath, "r");
-
-	if (file == NULL)
+	rootconsole->ConsolePrint("[CLEANER] Reading strings to clean from 'cleaner.cfg'");
+    ifstream cleanerConfig(szPath);
+    string line;
+	while (getline(cleanerConfig, line))
 	{
-		rootconsole->ConsolePrint("[CLEANER] Could not read configs/cleaner.cfg.");
-		return false;
+		// significantly more robust way of stripping evil chars from our string so we don't crash
+        // when we try to strip them. this includes newlines, control chars, non ascii unicde, etc.
+        stripBadChars(line);
+
+        // don't strip tiny (including 1 len or less) strings
+        if (line.length() < 1)
+        {
+            rootconsole->ConsolePrint("[CLEANER] Not stripping string on -> L%i with 1 or less length! Length: %i", szStrings.size(), line.length());
+        }
+        else
+        {
+            rootconsole->ConsolePrint("[CLEANER] Stripping string on     -> L%i: \"%s\" - length: %i", szStrings.size(), line.c_str(), line.length());
+        }
+        szStrings.push_back(line);
 	}
-
-	// step thru the file char by char and log the number of lines we have
-	int lines = 0;
-	for (int c = fgetc(file); c != EOF; c = fgetc(file))
-	{
-		if (c == '\n')
-		{
-			++lines;
-		}
-	}
-
-	rootconsole->ConsolePrint("[CLEANER] %i lines in cleaner.cfg", lines);
-
-	rewind(file);
-
-	g_szStrings = new char*[lines];
-
-	while (!feof(file))
-	{
-		// we don't need to have 256 chars to work with here as most strings are far smaller than that
-		
-		// fgets stops at n - 1 aka 127
-		//Read in to temp var
-		char* temp = new char[128];
-		if (fgets(temp, 128, file) != NULL)
-		{
-			// make things a little easier on ourselves
-			std::string thisstring = temp;
-
-			// significantly more robust way of stripping evil chars from our string so we don't crash
-			// when we try to strip them. this includes newlines, control chars, non ascii unicde, etc.
-			stripBadChars(thisstring);
-
-			// don't strip tiny (including 0 len or less) strings
-			if (thisstring.length() <= 1)
-			{
-				rootconsole->ConsolePrint("[CLEANER] Not stripping string on -> L%i with 1 or less length! Length: %i", g_iStrings+1, thisstring.length());
-			}
-			else
-			{
-				rootconsole->ConsolePrint("[CLEANER] Stripping string on     -> L%i: \"%s\" - length: %i", g_iStrings+1, thisstring.c_str(), thisstring.length());
-			}
-			g_szStrings[g_iStrings] = new char[thisstring.length()];
-			strcpy(g_szStrings[g_iStrings], thisstring.c_str());
-
-			++g_iStrings;
-		}
-		delete [] temp;
-	}
-	fclose(file);
-
+	rootconsole->ConsolePrint("[CLEANER] %i strings added from cleaner.cfg", szStrings.size());
+	cleanerConfig.close();
+	delete [] szPath;
 
 	// init our detours
 	#if SOURCE_ENGINE >= SE_LEFT4DEAD2
@@ -166,11 +135,4 @@ void Cleaner::SDK_OnUnload()
 		g_pDetour->Destroy();
 		g_pDetour = NULL;
 	}
-
-	for (int i = 0; i < g_iStrings; ++i)
-	{
-		delete [] g_szStrings[i];
-	}
-
-	delete [] g_szStrings;
 }
