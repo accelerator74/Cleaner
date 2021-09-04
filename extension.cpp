@@ -36,7 +36,7 @@ vector<string> szStrings;
 		{
 			// make sure we're stripping at least 2 or more chars just in case we accidentally inhale a \0
 			// also there's no reason to strip a single char ever
-			if (szStrings[i].length() >= 2 && szStrings[i].find(pMessage) != string::npos)
+			if (szStrings[i].length() >= 2 && szStrings[i].find(text) != string::npos)
 			{
 				return SPEW_CONTINUE;
 			}
