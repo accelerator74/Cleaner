@@ -81,7 +81,7 @@ bool Cleaner::SDK_OnLoad(char *error, size_t maxlength, bool late)
 		}
 		else
 		{
-			rootconsole->ConsolePrint("[CLEANER] Stripping string on	 -> L%i: \"%s\" - length: %i", szStrings.size(), line.c_str(), line.length());
+			rootconsole->ConsolePrint("[CLEANER] Stripping string on     -> L%i: \"%s\" - length: %i", szStrings.size(), line.c_str(), line.length());
 		}
 		szStrings.push_back(line);
 	}
