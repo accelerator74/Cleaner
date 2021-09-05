@@ -40,7 +40,7 @@
 /* Basic information exposed publicly */
 #define SMEXT_CONF_NAME             "Console Cleaner"
 #define SMEXT_CONF_DESCRIPTION      "Console warning suppressor"
-#define SMEXT_CONF_VERSION          "1.2.1"
+#define SMEXT_CONF_VERSION          "1.3.0"
 #define SMEXT_CONF_AUTHOR           "Accelerator, Zephyrus"
 #define SMEXT_CONF_URL              "https://github.com/Accelerator74/Cleaner"
 #define SMEXT_CONF_LOGTAG           "Cleaner"
