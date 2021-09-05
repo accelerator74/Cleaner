@@ -47,6 +47,8 @@
 #include <string>
 #include <iostream>
 #include <cctype>
+#include <vector>
+#include <fstream>
 
 
 //HalfLife2.h

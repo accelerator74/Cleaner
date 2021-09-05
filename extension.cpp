@@ -1,8 +1,5 @@
 #include "extension.h"
 #include "sigs.h"
-#include <vector>
-#include <fstream>
-#include <string>
 
 using namespace std;
 
