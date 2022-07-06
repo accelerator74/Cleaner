@@ -26,17 +26,17 @@ jobs:
           - windows-latest
 
         sm_version:
-          - "1.10"
+          - "1.11"
 
         mm_version:
-          - "1.10"
+          - "1.11"
 
         include:
-          - mm_version: "1.10"
-            mm_branch: "1.10-dev"
+          - mm_version: "1.11"
+            mm_branch: "1.11-dev"
 
-          - sm_version: "1.10"
-            sm_branch: "1.10-dev"
+          - sm_version: "1.11"
+            sm_branch: "1.11-dev"
 
           - os: ubuntu-latest
             os_short: linux
@@ -95,7 +95,7 @@ jobs:
       - name: Checking out AMBuild
         uses: actions/checkout@v2
         with:
-          repository: Accelerator74/ambuild
+          repository: accelerator74/ambuild
           path: ambuild
 
       - name: Setting up Python
