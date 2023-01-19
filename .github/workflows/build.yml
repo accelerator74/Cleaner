@@ -26,17 +26,17 @@ jobs:
           - windows-latest
 
         sm_version:
-          - "1.11"
+          - "master"
 
         mm_version:
-          - "1.11"
+          - "master"
 
         include:
-          - mm_version: "1.11"
-            mm_branch: "1.11-dev"
+          - mm_version: "master"
+            mm_branch: "master"
 
-          - sm_version: "1.11"
-            sm_branch: "1.11-dev"
+          - sm_version: "master"
+            sm_branch: "master"
 
           - os: ubuntu-latest
             os_short: linux
@@ -51,7 +51,7 @@ jobs:
           echo "GITHUB_SHA_SHORT=${GITHUB_SHA::7}" >> $GITHUB_ENV
 
       - name: Install (Linux)
-        if: runner.os == 'Linux'
+        if: startsWith(runner.os, 'Linux')
         run: |
           sudo dpkg --add-architecture i386
           sudo apt-get update
@@ -60,25 +60,24 @@ jobs:
           echo "CXX=clang++" >> $GITHUB_ENV
 
       - name: Add msbuild to PATH (Windows)
-        if: runner.os == 'Windows'
-        uses: microsoft/setup-msbuild@v1.0.2
+        if: startsWith(runner.os, 'Windows')
+        uses: microsoft/setup-msbuild@v1.1
 
       - name: Install (Windows)
-        if: runner.os == 'Windows'
+        if: startsWith(runner.os, 'Windows')
         shell: cmd
         run: |
           :: See https://github.com/microsoft/vswhere/wiki/Find-VC
           for /f "usebackq delims=*" %%i in (`vswhere -latest -property installationPath`) do (
             call "%%i"\Common7\Tools\vsdevcmd.bat -arch=x86 -host_arch=x64
           )
-
           :: Loop over all environment variables and make them global.
           for /f "delims== tokens=1,2" %%a in ('set') do (
             echo>>"%GITHUB_ENV%" %%a=%%b
           )
 
       - name: Checking out SourceMod
-        uses: actions/checkout@v2
+        uses: actions/checkout@v3
         with:
           repository: alliedmodders/sourcemod
           ref: ${{ matrix.sm_branch }}
@@ -86,69 +85,64 @@ jobs:
           submodules: recursive
 
       - name: Checking out MM:Source
-        uses: actions/checkout@v2
+        uses: actions/checkout@v3
         with:
           repository: alliedmodders/metamod-source
           ref: ${{ matrix.mm_branch }}
           path: metamod-${{ matrix.mm_version }}
 
-      - name: Checking out AMBuild
-        uses: actions/checkout@v2
-        with:
-          repository: accelerator74/ambuild
-          path: ambuild
-
       - name: Setting up Python
-        uses: actions/setup-python@v2
+        uses: actions/setup-python@v4
         with:
           python-version: '3.x'
 
       - name: Setting up ambuild
-        working-directory: ambuild
-        run: python setup.py install
+        run: |
+          python -m pip install wheel
+          pip install git+https://github.com/accelerator74/ambuild
 
       - name: Checking out hl2sdk-l4d2
-        uses: actions/checkout@v2
+        uses: actions/checkout@v3
         with:
           repository: alliedmodders/hl2sdk
           ref: l4d2
           path: hl2sdk-l4d2
 
       - name: Checking out hl2sdk-l4d
-        uses: actions/checkout@v2
+        uses: actions/checkout@v3
         with:
           repository: alliedmodders/hl2sdk
           ref: l4d
           path: hl2sdk-l4d
 
       - name: Checking out hl2sdk-css
-        uses: actions/checkout@v2
+        uses: actions/checkout@v3
         with:
           repository: alliedmodders/hl2sdk
           ref: css
           path: hl2sdk-css
 
       - name: Checking out hl2sdk-tf2
-        uses: actions/checkout@v2
+        uses: actions/checkout@v3
         with:
           repository: alliedmodders/hl2sdk
           ref: tf2
           path: hl2sdk-tf2
 
       - name: Checking out hl2sdk-csgo
-        uses: actions/checkout@v2
+        uses: actions/checkout@v3
         with:
           repository: alliedmodders/hl2sdk
           ref: csgo
           path: hl2sdk-csgo
 
       - name: Checking out own repository
-        uses: actions/checkout@v2
+        uses: actions/checkout@v3
         with:
-          path: cleaner
+          path: src
 
-      - name: Compiling Cleaner files
-        working-directory: cleaner
+      - name: Compiling ${{ github.event.repository.name }} files
+        working-directory: src
         run: |
           mkdir build
           cd build
@@ -156,7 +150,7 @@ jobs:
           ambuild
 
       - name: Uploading package
-        uses: actions/upload-artifact@v2
+        uses: actions/upload-artifact@v3
         with:
           name: cleaner-sm${{ matrix.sm_version }}-${{ matrix.os_short }}-${{ env.GITHUB_SHA_SHORT }}
-          path: cleaner/build/package
+          path: src/build/package
