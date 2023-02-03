@@ -5,7 +5,7 @@
 #define SIG_WINDOWS 		"\x55\x8B\xEC\x83\xE4\xF8\x8B\x45\x08\x83\xEC\x14"
 #define SIG_WIN_SIZE		12
 #define SIG_LINUX 		"LoggingSystem_Log"
-#define SIG_LINUX_OFFSET	192
+#define SIG_LINUX_OFFSET	576
 #elif SOURCE_ENGINE == SE_LEFT4DEAD2
 #define SIG_WINDOWS 		"\x55\x8B\xEC\x83\xEC\x1C\xA1\x2A\x2A\x2A\x2A"
 #define SIG_WIN_SIZE		11
