@@ -77,7 +77,7 @@ jobs:
           )
 
       - name: Checking out SourceMod
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
         with:
           repository: alliedmodders/sourcemod
           ref: ${{ matrix.sm_branch }}
@@ -85,7 +85,7 @@ jobs:
           submodules: recursive
 
       - name: Checking out MM:Source
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
         with:
           repository: alliedmodders/metamod-source
           ref: ${{ matrix.mm_branch }}
@@ -102,42 +102,42 @@ jobs:
           pip install git+https://github.com/accelerator74/ambuild
 
       - name: Checking out hl2sdk-l4d2
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
         with:
           repository: alliedmodders/hl2sdk
           ref: l4d2
           path: hl2sdk-l4d2
 
       - name: Checking out hl2sdk-l4d
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
         with:
           repository: alliedmodders/hl2sdk
           ref: l4d
           path: hl2sdk-l4d
 
       - name: Checking out hl2sdk-css
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
         with:
           repository: alliedmodders/hl2sdk
           ref: css
           path: hl2sdk-css
 
       - name: Checking out hl2sdk-tf2
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
         with:
           repository: alliedmodders/hl2sdk
           ref: tf2
           path: hl2sdk-tf2
 
       - name: Checking out hl2sdk-csgo
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
         with:
           repository: alliedmodders/hl2sdk
           ref: csgo
           path: hl2sdk-csgo
 
       - name: Checking out own repository
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
         with:
           path: src
 
