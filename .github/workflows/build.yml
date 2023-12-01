@@ -35,11 +35,11 @@ jobs:
           - "master"
 
         mm_version:
-          - "master"
+          - "1.12-dev"
 
         include:
-          - mm_version: "master"
-            mm_branch: "master"
+          - mm_version: "1.12-dev"
+            mm_branch: "1.12-dev"
 
           - sm_version: "master"
             sm_branch: "master"
