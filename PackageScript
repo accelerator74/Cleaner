@@ -1,15 +1,8 @@
+# vim: set ts=8 sts=2 sw=2 tw=99 et ft=python:
 import os.path
-import typing
-
-
-if typing.TYPE_CHECKING:
-    from ambuild2.frontend.v2_2.context import BuildContext
-    builder: BuildContext
-
 
 # This is where the files will be output to
 # package is the default
-# noinspection PyUnboundLocalVariable
 builder.SetBuildFolder('package')
 
 # Add any folders you need to this list
@@ -19,25 +12,31 @@ folder_list = [
     'addons/sourcemod/configs',
 ]
 
+if 'x86_64' in Extension.target_archs:
+  folder_list.extend([
+    'addons/sourcemod/extensions/x64',
+  ])
+
 # Create the distribution folder hierarchy
 folder_map = {}
 for folder in folder_list:
-    norm_folder = os.path.normpath(folder)
-    folder_map[folder] = builder.AddFolder(norm_folder)
-
+  norm_folder = os.path.normpath(folder)
+  folder_map[folder] = builder.AddFolder(norm_folder)
 
 # Do all straight-up file copies from the source tree
 def CopyFiles(src, dest, files):
-    if not dest:
-        dest = src
-    dest_entry = folder_map[dest]
-    for source_file in files:
-        source_path = os.path.join(builder.sourcePath, src, source_file)
-        builder.AddCopy(source_path, dest_entry)
-
+  if not dest:
+    dest = src
+  dest_entry = folder_map[dest]
+  for source_file in files:
+    source_path = os.path.join(builder.sourcePath, src, source_file)
+    builder.AddCopy(source_path, dest_entry)
 
 # Copy extension
-for cxx_task in build_info.extensions:
+for cxx_task in Extension.extensions:
+  if cxx_task.target.arch == 'x86_64':
+    builder.AddCopy(cxx_task.binary, folder_map['addons/sourcemod/extensions/x64'])
+  else:
     builder.AddCopy(cxx_task.binary, folder_map['addons/sourcemod/extensions'])
 
 CopyFiles('sourcemod/extensions', 'addons/sourcemod/extensions', ['cleaner.autoload'])
