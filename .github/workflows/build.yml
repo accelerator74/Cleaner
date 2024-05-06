@@ -65,23 +65,6 @@ jobs:
           echo "CC=clang" >> $GITHUB_ENV
           echo "CXX=clang++" >> $GITHUB_ENV
 
-      - name: Add msbuild to PATH (Windows)
-        if: startsWith(runner.os, 'Windows')
-        uses: microsoft/setup-msbuild@v2
-
-      - name: Install (Windows)
-        if: startsWith(runner.os, 'Windows')
-        shell: cmd
-        run: |
-          :: See https://github.com/microsoft/vswhere/wiki/Find-VC
-          for /f "usebackq delims=*" %%i in (`vswhere -latest -property installationPath`) do (
-            call "%%i"\Common7\Tools\vsdevcmd.bat -arch=x86 -host_arch=x64
-          )
-          :: Loop over all environment variables and make them global.
-          for /f "delims== tokens=1,2" %%a in ('set') do (
-            echo>>"%GITHUB_ENV%" %%a=%%b
-          )
-
       - name: Checking out SourceMod
         uses: actions/checkout@v4
         with:
@@ -148,6 +131,7 @@ jobs:
           path: src
 
       - name: Compiling ${{ github.event.repository.name }} files
+        shell: bash
         working-directory: src
         run: |
           mkdir build

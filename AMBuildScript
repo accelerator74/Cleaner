@@ -484,7 +484,7 @@ class ExtensionConfig(object):
 
     if compiler.target.platform == 'linux':
       if sdk.name in ['csgo', 'blade']:
-        compiler.linkflags.remove('-static-libstdc++')
+        #compiler.linkflags.remove('-static-libstdc++')
         compiler.defines += ['_GLIBCXX_USE_CXX11_ABI=0']
 
     for path in paths:
