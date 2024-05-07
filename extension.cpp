@@ -10,36 +10,24 @@ SMEXT_LINK(&g_Cleaner);
 
 CDetour *g_pDetour = 0;
 
-vector<string> szStrings;
+unordered_set<string> szStrings;
 
 #if SOURCE_ENGINE >= SE_LEFT4DEAD2
-	DETOUR_DECL_MEMBER4(Detour_LogDirect, LoggingResponse_t, LoggingChannelID_t, channelID, LoggingSeverity_t, severity, Color, color, const tchar *, pMessage)
-	{
-		for (int i = 0; i < szStrings.size(); ++i)
-		{
-			// make sure we're stripping at least 2 or more chars just in case we accidentally inhale a \0
-			// also there's no reason to strip a single char ever
-			if (szStrings[i].length() >= 2 && strstr(pMessage, szStrings[i].c_str()) != 0)
-			{
-				return LR_CONTINUE;
-			}
-		}
-		return DETOUR_MEMBER_CALL(Detour_LogDirect)(channelID, severity, color, pMessage);
-	}
+DETOUR_DECL_MEMBER4(Detour_LogDirect, LoggingResponse_t, LoggingChannelID_t, channelID, LoggingSeverity_t, severity, Color, color, const tchar *, pMessage)
+{
+	if (szStrings.find(pMessage) != szStrings.end())
+		return LR_CONTINUE;
+
+	return DETOUR_MEMBER_CALL(Detour_LogDirect)(channelID, severity, color, pMessage);
+}
 #else
-	DETOUR_DECL_STATIC2(Detour_DefSpew, SpewRetval_t, SpewType_t, channel, char *, text)
-	{
-		for (int i = 0; i < szStrings.size(); ++i)
-		{
-			// make sure we're stripping at least 2 or more chars just in case we accidentally inhale a \0
-			// also there's no reason to strip a single char ever
-			if (szStrings[i].length() >= 2 && strstr(text, szStrings[i].c_str()) != 0)
-			{
-				return SPEW_CONTINUE;
-			}
-		}
-		return DETOUR_STATIC_CALL(Detour_DefSpew)(channel, text);
-	}
+DETOUR_DECL_STATIC2(Detour_DefSpew, SpewRetval_t, SpewType_t, channel, char *, text)
+{
+	if (szStrings.find(text) != szStrings.end())
+			return SPEW_CONTINUE;
+
+	return DETOUR_STATIC_CALL(Detour_DefSpew)(channel, text);
+}
 #endif
 
 // https://stackoverflow.com/questions/10178700/c-strip-non-ascii-characters-from-string
@@ -73,47 +61,50 @@ bool Cleaner::SDK_OnLoad(char *error, size_t maxlength, bool late)
 		stripBadChars(line);
 
 		// don't strip tiny (including 1 len or less) strings
-		if (line.length() < 1)
+		if (line.length() >= 2)
 		{
-			rootconsole->ConsolePrint("[CLEANER] Not stripping string on -> L%i with 1 or less length! Length: %i", counter, line.length());
+			szStrings.insert(line);
 		}
 		else
 		{
-			szStrings.push_back(line);
+			rootconsole->ConsolePrint("[CLEANER] Not stripping string on -> L%i with 1 or less length! Length: %i", counter, line.length());
 		}
 
 		counter++;
 	}
+
 	rootconsole->ConsolePrint("[CLEANER] %i strings added from cleaner.cfg", szStrings.size());
 	cleanerConfig.close();
 
 	// init our detours
-	#if SOURCE_ENGINE >= SE_LEFT4DEAD2
-		#ifdef PLATFORM_WINDOWS
-			HMODULE tier0 = GetModuleHandle(TIER0_NAME);
-			void * fn = memutils->FindPattern(tier0, SIG_WINDOWS, SIG_WIN_SIZE);
-		#elif defined PLATFORM_LINUX
-			void * tier0 = dlopen(TIER0_NAME, RTLD_NOW);
-			void * fn = memutils->ResolveSymbol(tier0, SIG_LINUX);
-			dlclose(tier0);
-		#else
-			#error "Unsupported OS"
-		#endif
+#if SOURCE_ENGINE >= SE_LEFT4DEAD2
+#ifdef PLATFORM_WINDOWS
+	HMODULE tier0 = GetModuleHandle(TIER0_NAME);
+	void * fn = memutils->FindPattern(tier0, SIG_WINDOWS, SIG_WIN_SIZE);
+#elif defined PLATFORM_LINUX
+	void * tier0 = dlopen(TIER0_NAME, RTLD_NOW);
+	void * fn = memutils->ResolveSymbol(tier0, SIG_LINUX);
+	dlclose(tier0);
+#else
+	#error "Unsupported OS"
+#endif
 
-		if (!fn)
-		{
-			rootconsole->ConsolePrint("[CLEANER] Failed to find signature. Please contact the author.");
-			return false;
-		}
-		#if defined SIG_LINUX_OFFSET
-			#ifdef PLATFORM_LINUX
-				fn = (void *)((intptr_t)fn + SIG_LINUX_OFFSET);
-			#endif
-		#endif
-			g_pDetour = DETOUR_CREATE_MEMBER(Detour_LogDirect, fn);
-		#else
-			g_pDetour = DETOUR_CREATE_STATIC(Detour_DefSpew, (gpointer)GetSpewOutputFunc());
-	#endif
+	if (!fn)
+	{
+		rootconsole->ConsolePrint("[CLEANER] Failed to find signature. Please contact the author.");
+		return false;
+	}
+
+#if defined SIG_LINUX_OFFSET
+#ifdef PLATFORM_LINUX
+	fn = (void *)((intptr_t)fn + SIG_LINUX_OFFSET);
+#endif
+#endif
+
+	g_pDetour = DETOUR_CREATE_MEMBER(Detour_LogDirect, fn);
+#else
+	g_pDetour = DETOUR_CREATE_STATIC(Detour_DefSpew, (gpointer)GetSpewOutputFunc());
+#endif
 
 	if (g_pDetour == NULL)
 	{

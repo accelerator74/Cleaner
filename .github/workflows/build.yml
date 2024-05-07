@@ -142,7 +142,7 @@ jobs:
       - name: Uploading package
         uses: actions/upload-artifact@v4
         with:
-          name: ${{ github.event.repository.name }}-${{ matrix.sm_version }}-${{ matrix.os_short }}
+          name: ${{ github.event.repository.name }}-${{ matrix.os_short }}-${{ env.GITHUB_SHA_SHORT }}
           path: src/build/package
 
   release:
