@@ -15,16 +15,24 @@ unordered_set<string> szStrings;
 #if SOURCE_ENGINE >= SE_LEFT4DEAD2
 DETOUR_DECL_MEMBER4(Detour_LogDirect, LoggingResponse_t, LoggingChannelID_t, channelID, LoggingSeverity_t, severity, Color, color, const tchar *, pMessage)
 {
-	if (szStrings.find(pMessage) != szStrings.end())
-		return LR_CONTINUE;
+	for (const auto& str : szStrings) {
+		const char* str_cstr = str.c_str();
+		if (strstr(pMessage, str_cstr) != nullptr) {
+			return LR_CONTINUE;
+		}
+	}
 
 	return DETOUR_MEMBER_CALL(Detour_LogDirect)(channelID, severity, color, pMessage);
 }
 #else
 DETOUR_DECL_STATIC2(Detour_DefSpew, SpewRetval_t, SpewType_t, channel, char *, text)
 {
-	if (szStrings.find(text) != szStrings.end())
+	for (const auto& str : szStrings) {
+		const char* str_cstr = str.c_str();
+		if (strstr(text, str_cstr) != nullptr) {
 			return SPEW_CONTINUE;
+		}
+	}
 
 	return DETOUR_STATIC_CALL(Detour_DefSpew)(channel, text);
 }

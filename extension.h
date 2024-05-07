@@ -44,7 +44,7 @@
 
 // for string manipulation
 #include <algorithm>
-#include <string>
+#include <cstring>
 #include <iostream>
 #include <cctype>
 #include <unordered_set>
