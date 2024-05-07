@@ -65,6 +65,7 @@ bool Cleaner::SDK_OnLoad(char *error, size_t maxlength, bool late)
 	rootconsole->ConsolePrint("[CLEANER] Reading strings to clean from 'cleaner.cfg'");
 	ifstream cleanerConfig(szPath);
 	string line;
+	int counter = 1;
 	while (getline(cleanerConfig, line))
 	{
 		// significantly more robust way of stripping evil chars from our string so we don't crash
@@ -74,13 +75,14 @@ bool Cleaner::SDK_OnLoad(char *error, size_t maxlength, bool late)
 		// don't strip tiny (including 1 len or less) strings
 		if (line.length() < 1)
 		{
-			rootconsole->ConsolePrint("[CLEANER] Not stripping string on -> L%i with 1 or less length! Length: %i", szStrings.size(), line.length());
+			rootconsole->ConsolePrint("[CLEANER] Not stripping string on -> L%i with 1 or less length! Length: %i", counter, line.length());
 		}
 		else
 		{
-			rootconsole->ConsolePrint("[CLEANER] Stripping string on     -> L%i: \"%s\" - length: %i", szStrings.size(), line.c_str(), line.length());
+			szStrings.push_back(line);
 		}
-		szStrings.push_back(line);
+
+		counter++;
 	}
 	rootconsole->ConsolePrint("[CLEANER] %i strings added from cleaner.cfg", szStrings.size());
 	cleanerConfig.close();
