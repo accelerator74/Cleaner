@@ -1,6 +1,7 @@
 name: build
 
 on:
+  workflow_dispatch:
   push:
     branches:
       - main
@@ -29,6 +30,7 @@ jobs:
       matrix:
         os:
           - ubuntu-latest
+          - ubuntu-20.04
           - windows-latest
 
         sm_version:
@@ -46,6 +48,9 @@ jobs:
 
           - os: ubuntu-latest
             os_short: linux
+
+          - os: ubuntu-20.04
+            os_short: oldlinux
 
           - os: windows-latest
             os_short: win
