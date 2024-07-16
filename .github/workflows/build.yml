@@ -34,17 +34,18 @@ jobs:
           - windows-latest
 
         sm_version:
-          - "master"
-
-        mm_version:
-          - "master"
+          - "latest"
+          - "1.11"
 
         include:
-          - mm_version: "master"
+          - mm_version: "latest"
             mm_branch: "master"
 
-          - sm_version: "master"
+          - sm_version: "latest"
             sm_branch: "master"
+
+          - sm_version: "1.11"
+            sm_branch: "1.11-dev"
 
           - os: ubuntu-latest
             os_short: linux
@@ -147,7 +148,7 @@ jobs:
       - name: Uploading package
         uses: actions/upload-artifact@v4
         with:
-          name: ${{ github.event.repository.name }}-${{ matrix.os_short }}-${{ env.GITHUB_SHA_SHORT }}
+          name: ${{ github.event.repository.name }}-sm${{ matrix.sm_version }}-${{ matrix.os_short }}-${{ env.GITHUB_SHA_SHORT }}
           path: src/build/package
 
   release:
