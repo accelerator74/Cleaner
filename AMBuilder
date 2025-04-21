@@ -9,12 +9,14 @@ project.sources += [
 
 for sdk_name in Extension.sdks:
   sdk = Extension.sdks[sdk_name]
-  
+  if sdk['name'] in ['mock']:
+    continue
+
   for cxx in builder.targets:
-    if not cxx.target.arch in sdk.platformSpec[cxx.target.platform]:
+    if not cxx.target.arch in sdk['platforms'][cxx.target.platform]:
       continue
     
-    binary = Extension.HL2ExtConfig(project, builder, cxx, 'cleaner.ext.' + sdk.ext, sdk)
+    binary = Extension.HL2ExtConfig(project, builder, cxx, 'cleaner.ext.' + sdk['extension'], sdk)
     Extension.AddCDetour(binary)
 
 Extension.extensions += builder.Add(project)

@@ -35,7 +35,7 @@ jobs:
 
         sm_version:
           - "latest"
-          - "1.11"
+          - "1.12"
 
         include:
           - mm_version: "latest"
@@ -44,8 +44,8 @@ jobs:
           - sm_version: "latest"
             sm_branch: "master"
 
-          - sm_version: "1.11"
-            sm_branch: "1.11-dev"
+          - sm_version: "1.12"
+            sm_branch: "1.12-dev"
 
           - os: ubuntu-latest
             os_short: linux
@@ -131,6 +131,19 @@ jobs:
           ref: csgo
           path: hl2sdk-csgo
 
+      - name: Checking out hl2sdk-hl2dm
+        uses: actions/checkout@v4
+        with:
+          repository: alliedmodders/hl2sdk
+          ref: hl2dm
+          path: hl2sdk-hl2dm
+
+      - name: Checking out hl2sdk-manifests
+        uses: actions/checkout@v4
+        with:
+          repository: alliedmodders/hl2sdk-manifests
+          path: hl2sdk-manifests
+
       - name: Checking out own repository
         uses: actions/checkout@v4
         with:
@@ -142,7 +155,7 @@ jobs:
         run: |
           mkdir build
           cd build
-          python ../configure.py --enable-optimize --sm-path="${{ github.workspace }}/sourcemod-${{ matrix.sm_version }}" --mms-path="${{ github.workspace }}/metamod-${{ matrix.mm_version }}" --targets=x86,x86_64
+          python ../configure.py --enable-optimize --sm-path="${{ github.workspace }}/sourcemod-${{ matrix.sm_version }}" --hl2sdk-manifest-path="${{ github.workspace }}/hl2sdk-manifests" --mms-path="${{ github.workspace }}/metamod-${{ matrix.mm_version }}" --targets=x86,x86_64
           ambuild
 
       - name: Uploading package
