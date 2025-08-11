@@ -72,7 +72,7 @@ jobs:
           echo "CXX=clang++" >> $GITHUB_ENV
 
       - name: Checking out SourceMod
-        uses: actions/checkout@v4
+        uses: actions/checkout@v5
         with:
           repository: alliedmodders/sourcemod
           ref: ${{ matrix.sm_branch }}
@@ -80,7 +80,7 @@ jobs:
           submodules: recursive
 
       - name: Checking out MM:Source
-        uses: actions/checkout@v4
+        uses: actions/checkout@v5
         with:
           repository: alliedmodders/metamod-source
           ref: ${{ matrix.mm_branch }}
@@ -97,55 +97,55 @@ jobs:
           pip install git+https://github.com/accelerator74/ambuild@nog3
 
       - name: Checking out hl2sdk-l4d2
-        uses: actions/checkout@v4
+        uses: actions/checkout@v5
         with:
           repository: alliedmodders/hl2sdk
           ref: l4d2
           path: hl2sdk-l4d2
 
       - name: Checking out hl2sdk-l4d
-        uses: actions/checkout@v4
+        uses: actions/checkout@v5
         with:
           repository: alliedmodders/hl2sdk
           ref: l4d
           path: hl2sdk-l4d
 
       - name: Checking out hl2sdk-css
-        uses: actions/checkout@v4
+        uses: actions/checkout@v5
         with:
           repository: alliedmodders/hl2sdk
           ref: css
           path: hl2sdk-css
 
       - name: Checking out hl2sdk-tf2
-        uses: actions/checkout@v4
+        uses: actions/checkout@v5
         with:
           repository: alliedmodders/hl2sdk
           ref: tf2
           path: hl2sdk-tf2
 
       - name: Checking out hl2sdk-csgo
-        uses: actions/checkout@v4
+        uses: actions/checkout@v5
         with:
           repository: alliedmodders/hl2sdk
           ref: csgo
           path: hl2sdk-csgo
 
       - name: Checking out hl2sdk-hl2dm
-        uses: actions/checkout@v4
+        uses: actions/checkout@v5
         with:
           repository: alliedmodders/hl2sdk
           ref: hl2dm
           path: hl2sdk-hl2dm
 
       - name: Checking out hl2sdk-manifests
-        uses: actions/checkout@v4
+        uses: actions/checkout@v5
         with:
           repository: alliedmodders/hl2sdk-manifests
           path: hl2sdk-manifests
 
       - name: Checking out own repository
-        uses: actions/checkout@v4
+        uses: actions/checkout@v5
         with:
           path: src
 
