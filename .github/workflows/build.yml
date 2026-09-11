@@ -35,7 +35,6 @@ jobs:
 
         sm_version:
           - "latest"
-          - "1.12"
 
         include:
           - mm_version: "latest"
@@ -43,9 +42,6 @@ jobs:
 
           - sm_version: "latest"
             sm_branch: "master"
-
-          - sm_version: "1.12"
-            sm_branch: "1.12-dev"
 
           - os: ubuntu-latest
             os_short: linux
@@ -138,6 +134,7 @@ jobs:
         uses: actions/checkout@v7
         with:
           path: src
+          submodules: recursive
 
       - name: Compiling ${{ github.event.repository.name }} files
         shell: bash

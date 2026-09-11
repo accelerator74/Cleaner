@@ -22,14 +22,6 @@ def ResolveEnvPath(env, folder):
 def Normalize(path):
   return os.path.abspath(os.path.normpath(path))
 
-def SetArchFlags(compiler):
-  if compiler.behavior == 'gcc':
-    if compiler.target.arch == 'x86_64':
-      compiler.cflags += ['-fPIC']
-  elif compiler.like('msvc'):
-    if compiler.target.arch == 'x86_64':
-      compiler.defines += ['WIN64']
-
 hl2sdk_manifests_path = None
 
 # First we check if the manifest exists in the current path
@@ -62,6 +54,7 @@ class ExtensionConfig(object):
     self.all_targets = []
     self.target_archs = set()
     self.libsafetyhook = {}
+    self.libkhook = {}
 
     if builder.options.targets:
       target_archs = builder.options.targets.split(',')
@@ -126,7 +119,7 @@ class ExtensionConfig(object):
     if builder.options.mms_path:
       self.mms_root = builder.options.mms_path
     else:
-      self.mms_root = ResolveEnvPath('MMSOURCE112', 'mmsource-1.12')
+      self.mms_root = ResolveEnvPath('MMSOURCE20', 'mmsource-2.0')
       if not self.mms_root:
         self.mms_root = ResolveEnvPath('MMSOURCE', 'metamod-source')
       if not self.mms_root:
@@ -200,12 +193,12 @@ class ExtensionConfig(object):
       '-Wno-unknown-pragmas',
       '-Wno-dangling-else',
       '-fvisibility=hidden',
+      '-msse',
+      '-fPIC',
     ]
 
-    if cxx.target.arch in ['x86', 'x86_64']:
-      cxx.cflags += ['-msse']
-
     cxx.cxxflags += [
+      '-fno-rtti',
       '-fno-threadsafe-statics',
       '-Wno-non-virtual-dtor',
       '-Wno-overloaded-virtual',
@@ -359,17 +352,14 @@ class ExtensionConfig(object):
 
   def Library(self, context, compiler, name):
     compiler = compiler.clone()
-    SetArchFlags(compiler)
     return self.LibraryBuilder(compiler, name)
 
   def Program(self, context, compiler, name):
     compiler = compiler.clone()
-    SetArchFlags(compiler)
     return self.ProgramBuilder(compiler, name)
     
   def StaticLibrary(self, context, compiler, name):
     compiler = compiler.clone()
-    SetArchFlags(compiler)
     return self.StaticLibraryBuilder(compiler, name)
 
   def ConfigureForExtension(self, context, compiler):
@@ -386,7 +376,6 @@ class ExtensionConfig(object):
 
   def ExtLibrary(self, context, compiler, name):
     binary = self.Library(context, compiler, name)
-    SetArchFlags(compiler)
     self.ConfigureForExtension(context, binary.compiler)
     return binary
 
@@ -398,11 +387,10 @@ class ExtensionConfig(object):
 
   def ConfigureForHL2(self, context, binary, sdk):
     compiler = binary.compiler
-    SetArchFlags(compiler)
 
     compiler.cxxincludes += [
       os.path.join(self.mms_root, 'core'),
-      os.path.join(self.mms_root, 'core', 'sourcehook'),
+      os.path.join(context.currentSourcePath, 'khook', 'include'),
     ]
 
     for other_sdk in self.sdk_manifests:
@@ -414,36 +402,6 @@ class ExtensionConfig(object):
         compiler.cflags.remove('-Wno-nontrivial-memcall')
 
     return binary
-
-  def AddCDetour(self, binary):
-    sm_public_path = os.path.join(self.sm_root, 'public')
-    
-    if os.path.exists(os.path.join(sm_public_path, 'safetyhook')):
-      binary.sources += [ os.path.join(sm_public_path, 'CDetour', 'detours.cpp') ]
-      binary.compiler.cxxincludes += [ os.path.join(builder.sourcePath, 'safetyhook', 'include') ]
-
-      for task in self.libsafetyhook:
-        if task.target.arch == binary.compiler.target.arch:
-          binary.compiler.linkflags += [task.binary]
-          return
-      raise Exception('No suitable build of safetyhook was found.')
-    else:
-      binary.sources += [
-        os.path.join(sm_public_path, 'CDetour', 'detours.cpp'),
-        os.path.join(sm_public_path, 'asm', 'asm.c'),
-      ]
-      # sm1.10+
-      libudis_folder = os.path.join(sm_public_path, 'libudis86')
-      if os.path.isdir(libudis_folder):
-        binary.compiler.defines += ['HAVE_STRING_H']
-        binary.sources += [
-          os.path.join(libudis_folder, 'decode.c'),
-          os.path.join(libudis_folder, 'itab.c'),
-          os.path.join(libudis_folder, 'syn-att.c'),
-          os.path.join(libudis_folder, 'syn-intel.c'),
-          os.path.join(libudis_folder, 'syn.c'),
-          os.path.join(libudis_folder, 'udis86.c'),
-        ]
 
   def HL2Library(self, context, compiler, name, sdk):
     binary = self.Library(context, compiler, name)
@@ -464,11 +422,6 @@ class ExtensionConfig(object):
     self.ConfigureForExtension(context, binary.compiler)
     return binary
 
-class SafetyHookShim(object):
-  def __init__(self):
-    self.all_targets = {}
-    self.libsafetyhook = {}
-
 if getattr(builder, 'target', None) is not None:
     sys.stderr.write("Your output folder was configured for AMBuild 2.1.\n")
     sys.stderr.write("Please remove your output folder and reconfigure to continue.\n")
@@ -477,16 +430,6 @@ if getattr(builder, 'target', None) is not None:
 Extension = ExtensionConfig()
 Extension.detectSDKs()
 Extension.configure()
-
-if os.path.exists(os.path.join(Extension.sm_root, 'public', 'safetyhook')):
-    # we need to pull safetyhook in locally because ambuild does not take kindly to outside relpaths
-    safetyhook_dest = Normalize(builder.sourcePath + '/safetyhook/')
-    shutil.copytree(os.path.join(Extension.sm_root, 'public', 'safetyhook'), safetyhook_dest, dirs_exist_ok=True)
-
-    SafetyHook = SafetyHookShim()
-    SafetyHook.all_targets = Extension.all_targets
-    builder.Build('safetyhook/AMBuilder', {'SafetyHook': SafetyHook })
-    Extension.libsafetyhook = SafetyHook.libsafetyhook
 
 # This will clone the list and each cxx object as we recurse, preventing child
 # scripts from messing up global state.
@@ -502,4 +445,5 @@ if builder.backend == 'amb2':
         'PackageScript',
     ]
 
+builder.Build(['extension/khook/AMBuilder', 'extension/khook/third_party/safetyhook/AMBuilder'], { 'KHook': Extension, 'SafetyHook': Extension })
 builder.Build(BuildScripts, { 'Extension': Extension })

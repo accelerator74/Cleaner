@@ -1,3 +1,4 @@
+// extension.h
 /**
  * vim: set ts=4 :
  * =============================================================================
@@ -38,9 +39,8 @@
  */
 
 #include "smsdk_ext.h"
-#include "CDetour/detours.h"
+#include "khook.hpp"
 #include <tier0/dbg.h>
-
 
 // for string manipulation
 #include <algorithm>
@@ -49,7 +49,6 @@
 #include <cctype>
 #include <unordered_set>
 #include <fstream>
-
 
 //HalfLife2.h
 #if defined _WIN32
