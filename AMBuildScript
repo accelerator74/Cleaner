@@ -445,5 +445,5 @@ if builder.backend == 'amb2':
         'PackageScript',
     ]
 
-builder.Build(['extension/khook/AMBuilder', 'extension/khook/third_party/safetyhook/AMBuilder'], { 'KHook': Extension, 'SafetyHook': Extension })
+builder.Build(['khook/AMBuilder', 'khook/third_party/safetyhook/AMBuilder'], { 'KHook': Extension, 'SafetyHook': Extension })
 builder.Build(BuildScripts, { 'Extension': Extension })

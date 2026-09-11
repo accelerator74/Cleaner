@@ -17,7 +17,7 @@ for sdk_name in Extension.sdks:
       continue
     
     binary = Extension.HL2ExtConfig(project, builder, cxx, 'cleaner.ext.' + sdk['extension'], sdk)
-    binary.compiler.cxxincludes += [os.path.join(builder.sourcePath, 'extension', 'khook', 'include')]
+    binary.compiler.cxxincludes += [os.path.join(builder.sourcePath, 'khook', 'include')]
 
     binary.compiler.defines += ['KHOOK_STANDALONE', 'KHOOK_EXPORT']
     for task in Extension.libkhook:
